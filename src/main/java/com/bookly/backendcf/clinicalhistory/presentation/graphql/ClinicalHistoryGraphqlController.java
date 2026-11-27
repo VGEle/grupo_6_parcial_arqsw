@@ -4,6 +4,7 @@ import com.bookly.backendcf.clinicalhistory.application.FindClinicalHistoriesSer
 import com.bookly.backendcf.clinicalhistory.application.RegisterClinicalHistoryService;
 import com.bookly.backendcf.clinicalhistory.application.command.RegisterClinicalHistoryCommand;
 import com.bookly.backendcf.clinicalhistory.application.page.ClinicalHistoryPage;
+import com.bookly.backendcf.clinicalhistory.application.port.out.ClinicalHistoryQueryCache;
 import com.bookly.backendcf.clinicalhistory.domain.ClinicalHistory;
 import com.bookly.backendcf.clinicalhistory.domain.Gender;
 import com.bookly.backendcf.clinicalhistory.domain.exception.DomainValidationException;
@@ -25,18 +26,22 @@ import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 public class ClinicalHistoryGraphqlController {
 
     private final FindClinicalHistoriesService finder;
     private final RegisterClinicalHistoryService registrar;
+    private final ClinicalHistoryQueryCache cache;
 
     public ClinicalHistoryGraphqlController(
             FindClinicalHistoriesService finder,
-            RegisterClinicalHistoryService registrar) {
+            RegisterClinicalHistoryService registrar,
+            ClinicalHistoryQueryCache cache) {
         this.finder = finder;
         this.registrar = registrar;
+        this.cache = cache;
     }
 
     @Transactional(readOnly = true)
@@ -45,6 +50,11 @@ public class ClinicalHistoryGraphqlController {
             @Argument String identification,
             @Argument Integer first,
             @Argument String after) {
+
+        Optional<Map<String, Object>> cached = cache.get(identification, first, after);
+        if (cached.isPresent()) {
+            return cached.get();
+        }
 
         ClinicalHistoryPage page = finder.findPage(identification, first, after);
 
@@ -65,6 +75,7 @@ public class ClinicalHistoryGraphqlController {
         response.put("nodes", nodes);
         response.put("pageInfo", pageInfo);
 
+        cache.put(identification, first, after, response);
         return response;
     }
 

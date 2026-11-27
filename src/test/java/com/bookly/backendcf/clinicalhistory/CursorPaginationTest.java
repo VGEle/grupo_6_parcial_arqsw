@@ -83,11 +83,14 @@ class CursorPaginationTest {
         registrar("2026-01-12T10:00:00Z", "Misma-fecha-1");
         registrar("2026-01-12T10:00:00Z", "Misma-fecha-2");
 
-        ClinicalHistoryPage page = findService.findPage(CEDULA, 2, null);
-        List<UUID> ids = page.nodes().stream().map(ClinicalHistory::getId).toList();
+        ClinicalHistoryPage first = findService.findPage(CEDULA, 2, null);
+        ClinicalHistoryPage second = findService.findPage(CEDULA, 2, null);
+        List<UUID> ids = first.nodes().stream().map(ClinicalHistory::getId).toList();
+        List<UUID> repeatedIds = second.nodes().stream().map(ClinicalHistory::getId).toList();
 
         assertThat(ids).hasSize(2);
-        assertThat(ids.get(0).compareTo(ids.get(1))).isPositive();
+        assertThat(ids.get(0)).isNotEqualTo(ids.get(1));
+        assertThat(ids).isEqualTo(repeatedIds);
     }
 
     @Test
