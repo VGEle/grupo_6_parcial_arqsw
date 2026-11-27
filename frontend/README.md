@@ -58,6 +58,14 @@ python server.py
 - Campos obligatorios del formulario.
 - Errores de GraphQL se muestran en pantalla.
 
+## Despliegue en Render
+
+Desplegar como **Web Service** (no Static Site) con Runtime Python 3:
+
+- Start Command: `cd frontend && python server.py`
+- Variable `GRAPHQL_BACKEND=https://<backend-url>/graphql`
+- Render asigna `PORT` automáticamente.
+
 ## Archivos
 
 ```
