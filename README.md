@@ -368,6 +368,25 @@ Reportes generados:
     │   └── GraphqlMetricsIntegrationTest.java
     └── resources/application.properties
 
+## Frontend
+
+    frontend/
+    ├── index.html   (consulta por cédula y formulario de registro)
+    ├── styles.css
+    ├── app.js       (cliente GraphQL)
+    ├── server.py    (servidor estático + proxy /graphql)
+    └── README.md
+
+UI web básica que consume la API GraphQL. Con el backend levantado:
+
+```powershell
+cd frontend
+python server.py
+```
+
+Luego abrir http://localhost:5500. El servidor Python redirige `POST /graphql` a
+`http://localhost:8080/graphql`, por lo que no se necesita configurar CORS.
+
 ## Evidencias de ejecución
 
 Las evidencias finales se tomaron con datos ficticios después de ejecutar
