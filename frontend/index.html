@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historias Clínicas - Grupo 6</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Historias Clínicas</h1>
+  </header>
+
+  <main>
+    <section class="card" id="consulta">
+      <h2>1. Consultar por cédula</h2>
+      <form id="form-consulta" novalidate>
+        <div class="row">
+          <label>
+            Cédula del paciente
+            <input id="cedula-consulta" name="identification" type="text"
+                   placeholder="Ej. 1234567890" required>
+          </label>
+          <label>
+            Registros por página
+            <select id="first">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </label>
+          <button type="submit">Consultar</button>
+        </div>
+      </form>
+
+      <div id="consulta-estado" class="estado" hidden></div>
+
+      <div id="resultados" hidden>
+        <div class="resultados-head">
+          <h3>Historias encontradas <span id="total" class="badge">0</span></h3>
+          <button id="btn-mas" type="button" hidden>Cargar más</button>
+        </div>
+        <div id="lista"></div>
+      </div>
+    </section>
+
+    <section class="card" id="registro">
+      <h2>2. Registrar una historia clínica</h2>
+      <form id="form-registro" novalidate>
+        <fieldset>
+          <legend>Paciente</legend>
+          <div class="grid">
+            <label>Nombre<input name="firstName" type="text" placeholder="Ana" required></label>
+            <label>Apellido<input name="lastName" type="text" placeholder="Pérez" required></label>
+            <label>Cédula<input name="identification" type="text" placeholder="1234567890" required></label>
+            <label>Edad<input name="age" type="number" min="0" max="150" value="30" required></label>
+            <label>Género
+              <select name="gender" required>
+                <option value="FEMALE">FEMALE</option>
+                <option value="MALE">MALE</option>
+                <option value="OTHER">OTHER</option>
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Doctor</legend>
+          <div class="grid">
+            <label>Nombre<input name="doctorName" type="text" placeholder="Dr. Casa" required></label>
+            <label>Cédula profesional<input name="professionalLicense" type="text" placeholder="LP-1234" required></label>
+            <label>Especialidad<input name="specialty" type="text" placeholder="Medicina General" required></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Historia clínica</legend>
+          <div class="grid">
+            <label>Motivo de consulta<input name="consultationReason" type="text" placeholder="Dolor de cabeza" required></label>
+            <label>Diagnóstico<input name="diagnosis" type="text" placeholder="Gripe" required></label>
+            <label>Tratamiento<input name="treatment" type="text" placeholder="Reposo" required></label>
+            <label>Fecha de consulta<input name="date" type="datetime-local" required></label>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="primary">Registrar historia</button>
+      </form>
+      <div id="registro-estado" class="estado" hidden></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
