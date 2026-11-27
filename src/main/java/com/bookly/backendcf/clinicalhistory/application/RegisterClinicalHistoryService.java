@@ -1,6 +1,7 @@
 package com.bookly.backendcf.clinicalhistory.application;
 
 import com.bookly.backendcf.clinicalhistory.application.command.RegisterClinicalHistoryCommand;
+import com.bookly.backendcf.clinicalhistory.application.port.out.ClinicalHistoryQueryCache;
 import com.bookly.backendcf.clinicalhistory.application.port.out.ClinicalHistoryRepository;
 import com.bookly.backendcf.clinicalhistory.application.port.out.DoctorRepository;
 import com.bookly.backendcf.clinicalhistory.application.port.out.PatientRepository;
@@ -27,15 +28,18 @@ public class RegisterClinicalHistoryService {
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final ClinicalHistoryRepository clinicalHistoryRepository;
+    private final ClinicalHistoryQueryCache cache;
     private final Validator validator;
 
     public RegisterClinicalHistoryService(PatientRepository patientRepository,
                                           DoctorRepository doctorRepository,
                                           ClinicalHistoryRepository clinicalHistoryRepository,
+                                          ClinicalHistoryQueryCache cache,
                                           Validator validator) {
         this.patientRepository = patientRepository;
         this.doctorRepository = doctorRepository;
         this.clinicalHistoryRepository = clinicalHistoryRepository;
+        this.cache = cache;
         this.validator = validator;
     }
 
@@ -68,7 +72,13 @@ public class RegisterClinicalHistoryService {
                 historyData.treatment(),
                 historyData.consultationDate());
 
-        return clinicalHistoryRepository.save(history);
+        ClinicalHistory saved = clinicalHistoryRepository.save(history);
+
+        // La respuesta cacheada de este paciente ya no es válida. Las consultas
+        // de otros pacientes se dejan intactas.
+        cache.invalidate(patientData.identification());
+
+        return saved;
     }
 
     private void validate(RegisterClinicalHistoryCommand command) {
