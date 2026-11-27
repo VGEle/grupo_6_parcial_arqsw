@@ -31,6 +31,7 @@ class GraphqlMetricsAspectTest {
         assertThat(scrape).contains("operation=\"clinicalHistoriesByIdentification\"");
         assertThat(scrape).contains("status=\"success\"");
         assertThat(scrape).contains("graphql_request_duration_seconds_count");
+        assertThat(scrape).contains("graphql_request_duration_seconds_bucket");
     }
 
     @Test

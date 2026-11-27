@@ -370,8 +370,10 @@ Reportes generados:
 
 ## Evidencias de ejecución
 
-Las evidencias se tomaron con datos ficticios y documentan el funcionamiento
-de Docker, GraphiQL, paginación, Redis, Prometheus, Grafana y Maven.
+Las evidencias finales se tomaron con datos ficticios después de ejecutar
+`docker compose up -d --build` sobre la versión actual del proyecto. Por tanto,
+documentan la ejecución integrada de Docker, GraphiQL, paginación, Redis,
+Prometheus, Grafana y Maven, incluyendo las métricas y el cursor definitivo.
 
 | ID | Evidencia | Qué demuestra |
 |---|---|---|
@@ -387,7 +389,7 @@ de Docker, GraphiQL, paginación, Redis, Prometheus, Grafana y Maven.
 | E10 | Grafana | El dashboard muestra métricas de la aplicación y Redis. |
 | E11 | Pruebas | Maven termina con 29 pruebas exitosas. |
 
-Para repetir las evidencias se debe ejecutar primero:
+Para reproducir las evidencias desde cero se debe ejecutar primero:
 
 ```bash
 docker compose up -d --build

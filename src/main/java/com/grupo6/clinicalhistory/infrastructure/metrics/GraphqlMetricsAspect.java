@@ -41,6 +41,7 @@ public class GraphqlMetricsAspect {
                     "status", status).increment();
             Timer.builder("graphql_request_duration")
                     .tags("operation", operation, "status", status)
+                    .publishPercentileHistogram()
                     .register(registry)
                     .record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
         }

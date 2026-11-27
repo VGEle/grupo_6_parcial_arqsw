@@ -47,7 +47,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le, operation) (rate(graphql_request_duration_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, operation) (last_over_time(graphql_request_duration_seconds_bucket[15m])))",
           "legendFormat": "{{operation}}",
           "refId": "A"
         }
