@@ -1,0 +1,83 @@
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+type Patient {
+  id: ID!
+  identification: String!
+  firstName: String!
+  lastName: String!
+  age: Int!
+  gender: Gender!
+}
+
+type Doctor {
+  id: ID!
+  name: String!
+  professionalLicense: String!
+  specialty: String!
+}
+
+type ClinicalHistory {
+  id: ID!
+  patient: Patient!
+  doctor: Doctor!
+  consultationReason: String!
+  diagnosis: String!
+  treatment: String!
+  date: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type ClinicalHistoryConnection {
+  nodes: [ClinicalHistory!]!
+  pageInfo: PageInfo!
+}
+
+input PatientInput {
+  identification: String!
+  firstName: String!
+  lastName: String!
+  age: Int!
+  gender: Gender!
+}
+
+input DoctorInput {
+  name: String!
+  professionalLicense: String!
+  specialty: String!
+}
+
+input HistoryInput {
+  consultationReason: String!
+  diagnosis: String!
+  treatment: String!
+  date: String!
+}
+
+input CreateClinicalHistoryInput {
+  patient: PatientInput!
+  doctor: DoctorInput!
+  history: HistoryInput!
+}
+
+type Query {
+  clinicalHistoriesByIdentification(
+    identification: String!
+    first: Int = 10
+    after: String
+  ): ClinicalHistoryConnection!
+}
+
+type Mutation {
+  createClinicalHistory(
+    input: CreateClinicalHistoryInput!
+  ): ClinicalHistory!
+}
+
