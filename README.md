@@ -13,6 +13,20 @@
 - Sofia Espinal Vasquez
 - Elena Vargas Grisales
 
+## Participación de los integrantes
+
+- **Angel Simon Yepes Jaramillo:** desarrollo de la persistencia de pacientes,
+  doctores e historias clínicas, junto con sus relaciones, repositorios y
+  servicios de aplicación.
+- **Miguel Angel Marin Otalvaro:** implementación de la API GraphQL, incluyendo
+  la mutation de creación, la consulta por identificación y el manejo de
+  validaciones y errores.
+- **Sofia Espinal Vasquez:** implementación de la paginación por cursor, la
+  caché con Redis, la invalidación de caché y la observabilidad con Prometheus
+  y Grafana.
+- **Elena Vargas Grisales:** elaboración de pruebas de integración,
+  documentación técnica, diagrama de arquitectura y evidencias de ejecución.
+
 # Clinical History GraphQL
 
 Servicio web para gestionar historias clínicas básicas de pacientes, desarrollado con el mismo framework del proyecto Bookly:

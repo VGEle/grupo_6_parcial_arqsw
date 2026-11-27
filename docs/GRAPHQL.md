@@ -265,10 +265,9 @@ curl -X POST http://localhost:8080/graphql \
   }'
 ```
 
-## Evidencias pendientes
+## Evidencias complementarias
 
-Las capturas de GraphiQL deben tomarse después de levantar la aplicación y
-probar la mutation y la query con datos ficticios. También deben documentarse
-por separado las evidencias de Redis, Prometheus y Grafana en
-`docs/EVIDENCE.md`.
+Las evidencias de GraphiQL, Redis, Prometheus y Grafana están organizadas en
+`docs/EVIDENCE.md` y en la carpeta `docs/evidence/`. Todas deben ejecutarse con
+datos ficticios después de levantar la aplicación con Docker.
 
