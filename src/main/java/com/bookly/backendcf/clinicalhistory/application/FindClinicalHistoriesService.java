@@ -4,6 +4,7 @@ import com.bookly.backendcf.clinicalhistory.application.port.out.ClinicalHistory
 import com.bookly.backendcf.clinicalhistory.domain.ClinicalHistory;
 import com.bookly.backendcf.clinicalhistory.domain.exception.DomainValidationException;
 import com.bookly.backendcf.clinicalhistory.domain.validation.DomainRules;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,25 +23,48 @@ public class FindClinicalHistoriesService {
 
     private final ClinicalHistoryRepository clinicalHistoryRepository;
 
-    public FindClinicalHistoriesService(ClinicalHistoryRepository clinicalHistoryRepository) {
+    public FindClinicalHistoriesService(
+            ClinicalHistoryRepository clinicalHistoryRepository) {
         this.clinicalHistoryRepository = clinicalHistoryRepository;
     }
 
-    /** Devuelve las historias de una cédula, la más reciente primero. */
-    public Page<ClinicalHistory> findByIdentification(String identification, int page, int size) {
-        String cedula = DomainRules.validateIdentification(identification);
-        if (page < 0 || size < 1) {
-            throw new DomainValidationException("La página debe ser >= 0 y el tamaño >= 1");
+    /**
+     * Devuelve las historias clínicas de una cédula.
+     * Los registros más recientes aparecen primero.
+     */
+    public Page<ClinicalHistory> findByIdentification(
+            String identification,
+            int page,
+            int size) {
+
+        String cedula =
+                DomainRules.validateIdentification(identification);
+
+        if (page < 0 || size < 1 || size > 50) {
+            throw new DomainValidationException(
+                    "La página debe ser >= 0 y el tamaño debe estar entre 1 y 50");
         }
-        PageRequest pageable = PageRequest.of(page, size,
-                Sort.by(Sort.Direction.DESC, "consultationDate"));
-        return clinicalHistoryRepository.findByPatientIdentification(cedula, pageable);
+
+        PageRequest pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(
+                        Sort.Order.desc("consultationDate"),
+                        Sort.Order.desc("id")
+                )
+        );
+
+        return clinicalHistoryRepository
+                .findByPatientIdentification(cedula, pageable);
     }
 
     public Optional<ClinicalHistory> findById(UUID id) {
+
         if (id == null) {
-            throw new DomainValidationException("El id de la historia es obligatorio");
+            throw new DomainValidationException(
+                    "El id de la historia es obligatorio");
         }
+
         return clinicalHistoryRepository.findById(id);
     }
 }
