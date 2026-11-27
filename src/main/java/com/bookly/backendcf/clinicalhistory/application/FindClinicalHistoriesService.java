@@ -3,6 +3,7 @@ package com.bookly.backendcf.clinicalhistory.application;
 import com.bookly.backendcf.clinicalhistory.application.page.ClinicalHistoryPage;
 import com.bookly.backendcf.clinicalhistory.application.page.Cursor;
 import com.bookly.backendcf.clinicalhistory.application.port.out.ClinicalHistoryRepository;
+import com.bookly.backendcf.clinicalhistory.application.port.out.PatientRepository;
 import com.bookly.backendcf.clinicalhistory.domain.ClinicalHistory;
 import com.bookly.backendcf.clinicalhistory.domain.exception.DomainValidationException;
 import com.bookly.backendcf.clinicalhistory.domain.validation.DomainRules;
@@ -29,10 +30,13 @@ public class FindClinicalHistoriesService {
     public static final int MAX_PAGE_SIZE = 50;
 
     private final ClinicalHistoryRepository clinicalHistoryRepository;
+    private final PatientRepository patientRepository;
 
     public FindClinicalHistoriesService(
-            ClinicalHistoryRepository clinicalHistoryRepository) {
+            ClinicalHistoryRepository clinicalHistoryRepository,
+            PatientRepository patientRepository) {
         this.clinicalHistoryRepository = clinicalHistoryRepository;
+        this.patientRepository = patientRepository;
     }
 
     /**
@@ -48,6 +52,7 @@ public class FindClinicalHistoriesService {
         }
 
         Cursor cursor = after == null || after.isBlank() ? null : Cursor.decode(after);
+        ensurePatientExists(cedula);
         Sort sort = Sort.by(
                 Sort.Order.desc("consultationDate"),
                 Sort.Order.desc("id"));
@@ -80,6 +85,7 @@ public class FindClinicalHistoriesService {
             String identification, int page, int size) {
 
         String cedula = DomainRules.validateIdentification(identification);
+        ensurePatientExists(cedula);
 
         if (page < 0 || size < 1 || size > MAX_PAGE_SIZE) {
             throw new DomainValidationException(
@@ -96,6 +102,13 @@ public class FindClinicalHistoriesService {
         );
 
         return clinicalHistoryRepository.findByPatientIdentification(cedula, pageable);
+    }
+
+    private void ensurePatientExists(String identification) {
+        if (patientRepository.findByIdentification(identification).isEmpty()) {
+            throw new DomainValidationException(
+                    "No existe un paciente con cédula: " + identification);
+        }
     }
 
     public Optional<ClinicalHistory> findById(UUID id) {
