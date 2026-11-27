@@ -147,8 +147,9 @@ sequenceDiagram
 | `createClinicalHistory` | Registra una historia junto con paciente y doctor. |
 | `clinicalHistoriesByIdentification` | Consulta historias por cédula. |
 
-Endpoint GraphQL: `http://localhost:8080/graphql`<br>
-GraphiQL: `http://localhost:8080/graphiql`
+Endpoint GraphQL (local): `http://localhost:8080/graphql`<br>
+Endpoint GraphQL (despliegue): `https://grupo-6-parcial-arqsw.onrender.com/graphql`<br>
+GraphiQL (local): `http://localhost:8080/graphiql`
 
 ### Mutation de creación
 
@@ -261,17 +262,31 @@ redis_cache_hits_total
 redis_cache_misses_total
 ```
 
-Prometheus consulta `http://localhost:8081/actuator/prometheus` y Grafana usa
-Prometheus como fuente de datos. El dashboard muestra peticiones GraphQL,
+Prometheus consulta `http://localhost:8081/actuator/prometheus` en local y
+`https://grupo-6-parcial-arqsw.onrender.com/actuator/prometheus` en el
+despliegue; Grafana usa Prometheus como fuente de datos. El dashboard muestra peticiones GraphQL,
 duración, errores, hits y misses de Redis, estado de la aplicación y peticiones
 por segundo.
 
-## Ejecución
+## Despliegue
+
+El proyecto está **desplegado** en Render, usando **Supabase** como base de datos
+PostgreSQL y **Render Key Value** como caché Redis:
+
+- Frontend: https://grupo-6-parcial-arqsw-frontend.onrender.com/
+- GraphQL: https://grupo-6-parcial-arqsw.onrender.com/graphql
+- Health: https://grupo-6-parcial-arqsw.onrender.com/actuator/health
+- Métricas: https://grupo-6-parcial-arqsw.onrender.com/actuator/prometheus
+
+Las instancias gratuitas de Render se suspenden por inactividad, por lo que la
+primera petición puede tardar unos segundos en despertar.
+
+## Ejecución local
 
     cp .env.example .env
     docker compose up -d --build
 
-Servicios:
+Servicios locales:
 
 - GraphQL: http://localhost:8080/graphql
 - GraphiQL: http://localhost:8080/graphiql
@@ -386,6 +401,9 @@ python server.py
 
 Luego abrir http://localhost:5500. El servidor Python redirige `POST /graphql` a
 `http://localhost:8080/graphql`, por lo que no se necesita configurar CORS.
+
+Versión desplegada: https://grupo-6-parcial-arqsw-frontend.onrender.com/
+(con la variable `GRAPHQL_BACKEND=https://grupo-6-parcial-arqsw.onrender.com/graphql`).
 
 ## Evidencias de ejecución
 
