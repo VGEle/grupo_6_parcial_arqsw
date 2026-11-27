@@ -1,6 +1,7 @@
 {
   "annotations": { "list": [] },
   "editable": true,
+  "graphTooltip": 0,
   "panels": [
     {
       "title": "HTTP requests",
@@ -25,10 +26,103 @@
           "refId": "A"
         }
       ]
+    },
+    {
+      "title": "Total de peticiones GraphQL",
+      "description": "graphql_requests_total por operación",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum by (operation) (increase(graphql_requests_total[5m]))",
+          "legendFormat": "{{operation}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Duración de peticiones GraphQL p95",
+      "description": "graphql_request_duration por operación",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, operation) (rate(graphql_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "{{operation}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Errores GraphQL",
+      "description": "graphql_requests_total con status=error",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum by (operation) (increase(graphql_requests_total{status=\"error\"}[5m]))",
+          "legendFormat": "{{operation}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Cache hits de Redis",
+      "description": "redis_cache_hits_total",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum(increase(redis_cache_hits_total[5m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Cache misses de Redis",
+      "description": "redis_cache_misses_total",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum(increase(redis_cache_misses_total[5m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Estado de la aplicación",
+      "description": "1 = arriba, 0 = caída",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 24 },
+      "targets": [
+        {
+          "expr": "up{job=\"clinical-history-api\"}",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Peticiones por segundo",
+      "description": "RPS HTTP del servicio",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 18, "x": 6, "y": 24 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count[5m]))",
+          "legendFormat": "RPS",
+          "refId": "A"
+        }
+      ]
     }
   ],
+  "refresh": "10s",
   "schemaVersion": 39,
+  "tags": ["clinical-history", "graphql", "redis"],
+  "temporality": "instant",
+  "time": { "from": "now-15m", "to": "now" },
+  "timezone": "browser",
   "title": "Clinical History API",
-  "version": 1
+  "version": 2
 }
-
