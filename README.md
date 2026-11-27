@@ -36,31 +36,55 @@ Servicios:
 - Prometheus: http://localhost:9090
 - Grafana: http://localhost:3000
 
-Pruebas:
+## Pruebas
 
-    ./mvnw clean verify
+    .\mvnw clean verify
+
+En Linux/Mac usar `./mvnw clean verify`. No hace falta levantar PostgreSQL ni Redis: las pruebas usan H2 en memoria.
+
+- Flyway ejecuta `V1__create_clinical_history.sql`.
+- Hibernate arranca con `spring.jpa.hibernate.ddl-auto=validate`, por lo que el contexto solo inicia si las entidades coinciden con el SQL de la migración.
+- Se cubren registro y consulta paginada por cédula, reutilización de paciente/doctor, y validaciones de cédula, edad, género y campos obligatorios.
+
+Código y configuración:
+
+    src/test/java/com/bookly/backendcf/clinicalhistory/ClinicalHistoryPersistenceTest.java
+    src/test/resources/application.properties
+
+Para ejecutar una sola prueba:
+
+    .\mvnw test "-Dtest=ClinicalHistoryPersistenceTest#registraYConsultaHistoriaPorCedula"
+
+Reportes generados:
+
+- `target/surefire-reports/` — resultado de cada prueba.
+- `target/site/jacoco/index.html` — cobertura.
 
 ## Estructura
 
     src/main/java/com/bookly/backendcf/
+    ├── BackendcfApplication.java
     └── clinicalhistory/
-        ├── application/
         ├── domain/
+        │   ├── Patient.java
+        │   ├── Doctor.java
+        │   ├── ClinicalHistory.java
+        │   ├── Gender.java
+        │   ├── exception/
+        │   └── validation/
+        ├── application/
+        │   ├── RegisterClinicalHistoryService.java
+        │   ├── FindClinicalHistoriesService.java
+        │   ├── command/
+        │   └── port/out/
         ├── infrastructure/
-        └── presentation/graphql/
+        │   └── persistence/          (repositorios JPA)
+        └── presentation/graphql/     (resolvers, pendiente)
 
     src/main/resources/
     ├── graphql/schema.graphqls
     └── db/migration/V1__create_clinical_history.sql
 
-## Trabajo colaborativo
-
-Ramas de trabajo:
-
-    integration/parcial-graphql
-    ├── feature/01-infra-graphql-redis
-    ├── feature/02-historias-persistencia
-    ├── feature/03-historias-graphql
-    └── feature/04-calidad-observabilidad
-
-No se deben hacer commits directos sobre main.
+    src/test/
+    ├── java/com/bookly/backendcf/clinicalhistory/ClinicalHistoryPersistenceTest.java
+    └── resources/application.properties
