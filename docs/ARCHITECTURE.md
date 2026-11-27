@@ -174,10 +174,9 @@ redis_cache_hits_total
 redis_cache_misses_total
 ```
 
-Además, Actuator expone métricas HTTP y métricas de la JVM. La implementación
-de las métricas específicas de GraphQL y Redis corresponde a la rama
-`feature/03-cache-paginacion-observabilidad` y debe validarse antes de cerrar
-la entrega.
+Además, Actuator expone métricas HTTP y métricas de la JVM. Las métricas
+específicas de GraphQL y Redis están integradas en la solución y se validan
+mediante las evidencias de Prometheus y Grafana.
 
 ## Despliegue local con Docker
 

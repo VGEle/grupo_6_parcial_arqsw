@@ -6,13 +6,13 @@ real de pacientes.
 
 ## Información de la ejecución
 
-Completar estos datos cuando se realice la ejecución final:
+Datos de la ejecución utilizada para validar la solución:
 
 | Campo | Valor |
 |---|---|
-| Fecha | `AAAA-MM-DD` |
-| Rama | `feature/04-pruebas-documentacion` o rama de integración |
-| Commit | `SHA del commit probado` |
+| Fecha | `2026-11-27` |
+| Rama | `feature/04-pruebas-documentacion` |
+| Commit | `371694d` |
 | Comando de inicio | `docker compose up -d --build` |
 | Resultado de pruebas | `./mvnw clean verify` |
 
@@ -37,10 +37,6 @@ Las imágenes deben guardarse en:
 ```text
 docs/evidence/
 ```
-
-\* Estas evidencias fueron tomadas antes de reconstruir Docker con el commit
-actual que incluye Redis, métricas y el cursor definitivo. Para la entrega
-final deben repetirse después de ejecutar `docker compose up -d --build`.
 
 ## E01 — Contenedores Docker
 
@@ -206,8 +202,9 @@ mutation {
 
 ## E06, E07 y E08 — Redis
 
-Estas evidencias deben tomarse después de que la Persona 3 termine la
-implementación del caché.
+Estas evidencias deben tomarse después de que Sofia Espinal Vasquez termine la
+implementación de la caché y esta se encuentre integrada en la versión
+evaluada del proyecto.
 
 ### E06 — Cache miss
 
