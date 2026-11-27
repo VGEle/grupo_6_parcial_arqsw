@@ -1,4 +1,3 @@
-
 package com.bookly.backendcf.clinicalhistory.presentation.graphql;
 
 import com.bookly.backendcf.clinicalhistory.application.FindClinicalHistoriesService;
@@ -14,16 +13,18 @@ import graphql.schema.DataFetchingEnvironment;
 
 import org.springframework.data.domain.Page;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.GraphQlExceptionHandler;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
-import org.springframework.graphql.data.method.annotation.GraphQlExceptionHandler;
 import org.springframework.graphql.execution.ErrorType;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,26 +41,32 @@ public class ClinicalHistoryGraphqlController {
         this.registrar = registrar;
     }
 
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     @QueryMapping
     public Map<String, Object> clinicalHistoriesByIdentification(
             @Argument String identification,
             @Argument Integer first,
             @Argument String after) {
 
+        // Tamaño predeterminado: 10 registros.
         int size = first == null ? 10 : first;
 
-        if (size < 1 || size > 100) {
+        // Límite máximo de 50 registros por página.
+        if (size < 1 || size > 50) {
             throw new DomainValidationException(
-                    "first debe estar entre 1 y 100");
+                    "first debe estar entre 1 y 50");
         }
 
+        // El cursor indica la página que se debe consultar.
         int pageNumber = decodePage(after);
 
         Page<ClinicalHistory> page =
                 finder.findByIdentification(
-                        identification, pageNumber, size);
+                        identification,
+                        pageNumber,
+                        size);
 
+        // Convertir las historias clínicas al formato GraphQL.
         List<Map<String, Object>> nodes = page.getContent()
                 .stream()
                 .map(this::toGraphql)
@@ -67,17 +74,24 @@ public class ClinicalHistoryGraphqlController {
 
         boolean hasNext = page.hasNext();
 
+        // El cursor permite solicitar la siguiente página.
         String endCursor = hasNext
                 ? encodePage(pageNumber + 1)
                 : null;
 
-        return Map.of(
-                "nodes", nodes,
-                "pageInfo", Map.of(
-                        "hasNextPage", hasNext,
-                        "endCursor", endCursor == null ? "" : endCursor
-                )
-        );
+        // HashMap permite almacenar endCursor como null
+        // cuando no existe una página siguiente.
+        Map<String, Object> pageInfo = new HashMap<>();
+
+        pageInfo.put("hasNextPage", hasNext);
+        pageInfo.put("endCursor", endCursor);
+
+        Map<String, Object> response = new HashMap<>();
+
+        response.put("nodes", nodes);
+        response.put("pageInfo", pageInfo);
+
+        return response;
     }
 
     @MutationMapping
@@ -101,26 +115,26 @@ public class ClinicalHistoryGraphqlController {
         RegisterClinicalHistoryCommand command =
                 new RegisterClinicalHistoryCommand(
 
-                    new RegisterClinicalHistoryCommand.PatientData(
-                            (String) patient.get("identification"),
-                            (String) patient.get("firstName"),
-                            (String) patient.get("lastName"),
-                            (Integer) patient.get("age"),
-                            requireGender(patient.get("gender"))
-                    ),
+                        new RegisterClinicalHistoryCommand.PatientData(
+                                (String) patient.get("identification"),
+                                (String) patient.get("firstName"),
+                                (String) patient.get("lastName"),
+                                (Integer) patient.get("age"),
+                                requireGender(patient.get("gender"))
+                        ),
 
-                    new RegisterClinicalHistoryCommand.DoctorData(
-                            (String) doctor.get("name"),
-                            (String) doctor.get("professionalLicense"),
-                            (String) doctor.get("specialty")
-                    ),
+                        new RegisterClinicalHistoryCommand.DoctorData(
+                                (String) doctor.get("name"),
+                                (String) doctor.get("professionalLicense"),
+                                (String) doctor.get("specialty")
+                        ),
 
-                    new RegisterClinicalHistoryCommand.HistoryData(
-                            (String) history.get("consultationReason"),
-                            (String) history.get("diagnosis"),
-                            (String) history.get("treatment"),
-                            requireDate(history.get("date"))
-                    )
+                        new RegisterClinicalHistoryCommand.HistoryData(
+                                (String) history.get("consultationReason"),
+                                (String) history.get("diagnosis"),
+                                (String) history.get("treatment"),
+                                requireDate(history.get("date"))
+                        )
                 );
 
         return toGraphql(registrar.register(command));
@@ -165,7 +179,8 @@ public class ClinicalHistoryGraphqlController {
 
     @SuppressWarnings("unchecked")
     private static Map<String, Object> requireObject(
-            Map<String, Object> input, String key) {
+            Map<String, Object> input,
+            String key) {
 
         Object value = input.get(key);
 

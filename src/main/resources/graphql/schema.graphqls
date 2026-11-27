@@ -1,3 +1,4 @@
+
 enum Gender {
   MALE
   FEMALE
@@ -80,4 +81,3 @@ type Mutation {
     input: CreateClinicalHistoryInput!
   ): ClinicalHistory!
 }
-
