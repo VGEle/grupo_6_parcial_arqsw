@@ -1,6 +1,8 @@
 package com.bookly.backendcf.clinicalhistory;
 
 import com.bookly.backendcf.clinicalhistory.infrastructure.cache.RedisClinicalHistoryQueryCache;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -26,6 +28,7 @@ class RedisClinicalHistoryQueryCacheTest {
     private RedisTemplate<String, Object> redisTemplate;
     private ValueOperations<String, Object> values;
     private SetOperations<String, Object> sets;
+    private PrometheusMeterRegistry registry;
     private RedisClinicalHistoryQueryCache cache;
 
     @BeforeEach
@@ -35,7 +38,8 @@ class RedisClinicalHistoryQueryCacheTest {
         sets = mock(SetOperations.class);
         when(redisTemplate.opsForValue()).thenReturn(values);
         when(redisTemplate.opsForSet()).thenReturn(sets);
-        cache = new RedisClinicalHistoryQueryCache(redisTemplate, 5);
+        registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
+        cache = new RedisClinicalHistoryQueryCache(redisTemplate, 5, registry);
     }
 
     @Test
@@ -44,11 +48,15 @@ class RedisClinicalHistoryQueryCacheTest {
         when(values.get("clinical-history:query:1234567890:10:start")).thenReturn(response);
 
         assertThat(cache.get(CEDULA, 10, null)).contains(response);
+        assertThat(registry.get("redis_cache_hits").counter().count()).isEqualTo(1);
+        assertThat(registry.scrape()).contains("redis_cache_hits_total");
     }
 
     @Test
     void missCuandoNoHayValor() {
         assertThat(cache.get(CEDULA, 10, null)).isEmpty();
+        assertThat(registry.get("redis_cache_misses").counter().count()).isEqualTo(1);
+        assertThat(registry.scrape()).contains("redis_cache_misses_total");
     }
 
     @Test
@@ -81,6 +89,7 @@ class RedisClinicalHistoryQueryCacheTest {
                 .thenThrow(new RedisConnectionFailureException("Redis caído"));
 
         assertThat(cache.get(CEDULA, 10, null)).isEmpty();
+        assertThat(registry.get("redis_cache_misses").counter().count()).isEqualTo(1);
         assertThatCode(() -> cache.put(CEDULA, 10, null, Map.of()))
                 .doesNotThrowAnyException();
         assertThatCode(() -> cache.invalidate(CEDULA))

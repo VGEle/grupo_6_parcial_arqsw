@@ -1,6 +1,8 @@
 package com.bookly.backendcf.clinicalhistory.infrastructure.cache;
 
 import com.bookly.backendcf.clinicalhistory.application.port.out.ClinicalHistoryQueryCache;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,13 +28,18 @@ public class RedisClinicalHistoryQueryCache implements ClinicalHistoryQueryCache
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final Duration ttl;
+    private final Counter hits;
+    private final Counter misses;
     private final AtomicBoolean warningLogged = new AtomicBoolean();
 
     public RedisClinicalHistoryQueryCache(
             RedisTemplate<String, Object> redisTemplate,
-            @Value("${clinical-history.cache.ttl-minutes:5}") long ttlMinutes) {
+            @Value("${clinical-history.cache.ttl-minutes:5}") long ttlMinutes,
+            MeterRegistry registry) {
         this.redisTemplate = redisTemplate;
         this.ttl = Duration.ofMinutes(ttlMinutes);
+        this.hits = registry.counter("redis_cache_hits", "cache", "clinical_histories");
+        this.misses = registry.counter("redis_cache_misses", "cache", "clinical_histories");
     }
 
     @Override
@@ -42,11 +49,14 @@ public class RedisClinicalHistoryQueryCache implements ClinicalHistoryQueryCache
         try {
             Object value = redisTemplate.opsForValue().get(key(identification, first, after));
             if (value instanceof Map<?, ?> map) {
+                hits.increment();
                 return Optional.of((Map<String, Object>) map);
             }
         } catch (RuntimeException ex) {
             warn("No se pudo leer la caché", ex);
         }
+        // No estaba en Redis: hay que consultar PostgreSQL.
+        misses.increment();
         return Optional.empty();
     }
 
