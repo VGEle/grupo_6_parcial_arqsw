@@ -3,6 +3,7 @@ package com.bookly.backendcf.clinicalhistory.presentation.graphql;
 import com.bookly.backendcf.clinicalhistory.application.FindClinicalHistoriesService;
 import com.bookly.backendcf.clinicalhistory.application.RegisterClinicalHistoryService;
 import com.bookly.backendcf.clinicalhistory.application.command.RegisterClinicalHistoryCommand;
+import com.bookly.backendcf.clinicalhistory.application.page.ClinicalHistoryPage;
 import com.bookly.backendcf.clinicalhistory.domain.ClinicalHistory;
 import com.bookly.backendcf.clinicalhistory.domain.Gender;
 import com.bookly.backendcf.clinicalhistory.domain.exception.DomainValidationException;
@@ -11,7 +12,6 @@ import graphql.GraphQLError;
 import graphql.GraphqlErrorBuilder;
 import graphql.schema.DataFetchingEnvironment;
 
-import org.springframework.data.domain.Page;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.GraphQlExceptionHandler;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
@@ -20,10 +20,8 @@ import org.springframework.graphql.execution.ErrorType;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,43 +46,19 @@ public class ClinicalHistoryGraphqlController {
             @Argument Integer first,
             @Argument String after) {
 
-        // Tamaño predeterminado: 10 registros.
-        int size = first == null ? 10 : first;
+        ClinicalHistoryPage page = finder.findPage(identification, first, after);
 
-        // Límite máximo de 50 registros por página.
-        if (size < 1 || size > 50) {
-            throw new DomainValidationException(
-                    "first debe estar entre 1 y 50");
-        }
-
-        // El cursor indica la página que se debe consultar.
-        int pageNumber = decodePage(after);
-
-        Page<ClinicalHistory> page =
-                finder.findByIdentification(
-                        identification,
-                        pageNumber,
-                        size);
-
-        // Convertir las historias clínicas al formato GraphQL.
-        List<Map<String, Object>> nodes = page.getContent()
+        List<Map<String, Object>> nodes = page.nodes()
                 .stream()
                 .map(this::toGraphql)
                 .toList();
-
-        boolean hasNext = page.hasNext();
-
-        // El cursor permite solicitar la siguiente página.
-        String endCursor = hasNext
-                ? encodePage(pageNumber + 1)
-                : null;
 
         // HashMap permite almacenar endCursor como null
         // cuando no existe una página siguiente.
         Map<String, Object> pageInfo = new HashMap<>();
 
-        pageInfo.put("hasNextPage", hasNext);
-        pageInfo.put("endCursor", endCursor);
+        pageInfo.put("hasNextPage", page.hasNextPage());
+        pageInfo.put("endCursor", page.endCursor());
 
         Map<String, Object> response = new HashMap<>();
 
@@ -220,46 +194,6 @@ public class ClinicalHistoryGraphqlController {
             throw new DomainValidationException(
                     "La fecha debe ser ISO-8601. Ejemplo: 2026-11-27T14:00:00Z");
         }
-    }
-
-    private static int decodePage(String after) {
-
-        if (after == null || after.isBlank()) {
-            return 0;
-        }
-
-        try {
-            String decoded = new String(
-                    Base64.getUrlDecoder().decode(after),
-                    StandardCharsets.UTF_8
-            );
-
-            if (!decoded.startsWith("page:")) {
-                throw new IllegalArgumentException();
-            }
-
-            int page = Integer.parseInt(
-                    decoded.substring(5));
-
-            if (page < 0) {
-                throw new IllegalArgumentException();
-            }
-
-            return page;
-
-        } catch (IllegalArgumentException ex) {
-            throw new DomainValidationException(
-                    "Cursor de paginacion invalido");
-        }
-    }
-
-    private static String encodePage(int page) {
-
-        return Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(
-                        ("page:" + page).getBytes(
-                                StandardCharsets.UTF_8));
     }
 
     @GraphQlExceptionHandler({
