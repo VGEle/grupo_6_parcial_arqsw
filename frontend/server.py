@@ -35,7 +35,7 @@ class Handler(SimpleHTTPRequestHandler):
         )
 
         try:
-            with urlopen(peticion, timeout=10) as respuesta:
+            with urlopen(peticion, timeout=60) as respuesta:
                 datos = respuesta.read()
                 estado = respuesta.status
         except HTTPError as error:
